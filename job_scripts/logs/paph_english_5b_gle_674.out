@@ -1,0 +1,27 @@
+Traceback (most recent call last):
+  File "/home/khanh/sla/parameter_analysis/job_scripts/../pa_plot_heat.py", line 82, in <module>
+    plot_checkpoint_heatmaps(args.json, args.out_dir)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/khanh/sla/parameter_analysis/job_scripts/../pa_plot_heat.py", line 42, in plot_checkpoint_heatmaps
+    fig, axes = plt.subplots(nrows, ncols, figsize=(5*ncols, 4*nrows))
+                ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/khanh/miniforge3/envs/sla_cpt/lib/python3.13/site-packages/matplotlib/pyplot.py", line 1778, in subplots
+    axs = fig.subplots(nrows=nrows, ncols=ncols, sharex=sharex, sharey=sharey,
+                       squeeze=squeeze, subplot_kw=subplot_kw,
+                       gridspec_kw=gridspec_kw, height_ratios=height_ratios,
+                       width_ratios=width_ratios)
+  File "/home/khanh/miniforge3/envs/sla_cpt/lib/python3.13/site-packages/matplotlib/figure.py", line 918, in subplots
+    gs = self.add_gridspec(nrows, ncols, figure=self, **gridspec_kw)
+  File "/home/khanh/miniforge3/envs/sla_cpt/lib/python3.13/site-packages/matplotlib/figure.py", line 1600, in add_gridspec
+    gs = GridSpec(nrows=nrows, ncols=ncols, figure=self, **kwargs)
+  File "/home/khanh/miniforge3/envs/sla_cpt/lib/python3.13/site-packages/matplotlib/gridspec.py", line 363, in __init__
+    super().__init__(nrows, ncols,
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+                     width_ratios=width_ratios,
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+                     height_ratios=height_ratios)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/khanh/miniforge3/envs/sla_cpt/lib/python3.13/site-packages/matplotlib/gridspec.py", line 48, in __init__
+    raise ValueError(
+        f"Number of rows must be a positive integer, not {nrows!r}")
+ValueError: Number of rows must be a positive integer, not np.float64(2.0)
