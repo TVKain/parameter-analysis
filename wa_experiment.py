@@ -360,7 +360,7 @@ def plot_l1mean_vs_cosine(json_path: str, output_dir: str = "plots"):
 # Main entry point
 # -----------------------------
 def main():
-    parser = argparse.ArgumentParser(description="Compare models and plot heatmaps")
+    parser = argparse.ArgumentParser(description="Weight analysis")
     parser.add_argument("--base-model-path", type=str, required=True, help="Path to the base model")
     parser.add_argument("--target-model-path", type=str, required=True, help="Path to the target model folder")
     parser.add_argument("--artifact-out", type=str, default="artifacts", help="Folder to save artifacts")
