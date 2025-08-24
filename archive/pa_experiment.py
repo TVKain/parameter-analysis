@@ -1,9 +1,13 @@
 """
-Parameter analysis
+SLA Parameter Analysis
 
+This script will load a base model and its checkpoint during CPT to adapt for a target language
 
-
-
+The output of this script will be
+- A JSON file containing all the difference of the model's components such as q_proj, v_proj, k_proj, mlp_gate, mlp_up, mlp_down
+- Heatmap plot files for the q_proj, v_proj, k_proj, mlp_gate, mlp_up, mlp_down components for each checkpoint
+- 1 input embedding plot for 5 metrics
+- 1 ml head plot for 5 metrics  
 """
 
 from datetime import datetime
@@ -53,7 +57,7 @@ def l1_norm(a: Tensor, b: Tensor) -> float:
 
 def l1_norm_mean(a: Tensor, b: Tensor) -> float:
     """
-    L1 norm men
+    L1 norm mean
     """
     return torch.abs(a - b).mean().item()
 
@@ -71,12 +75,15 @@ def l2_norm_mean(a: Tensor, b: Tensor) -> float:
     """
     return torch.sqrt((a - b).pow(2).mean()).item()
 
+
 def get_model_name(model_path: str) -> str:
     """Extract model name from path"""
     return os.path.basename(os.path.normpath(model_path))
 
 
-def generate_output_filename(base_model_path: str, target_model_path: str, output_dir: str) -> str:
+def generate_output_filename(
+    base_model_path: str, target_model_path: str, output_dir: str
+) -> str:
     """Generate JSON filename with datetime and model names"""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     base_name = get_model_name(base_model_path)
@@ -111,7 +118,9 @@ def detect_check_points(model_dir: str) -> list[str]:
 
     try:
         checkpoints = [
-            os.path.join(model_dir, f) for f in os.listdir(model_dir) if pattern.match(f)
+            os.path.join(model_dir, f)
+            for f in os.listdir(model_dir)
+            if pattern.match(f)
         ]
     except Exception:
         # Hack
@@ -120,6 +129,7 @@ def detect_check_points(model_dir: str) -> list[str]:
     checkpoints.sort(key=lambda x: int(x.split("-")[-1]))  # Sort by epoch number
 
     return checkpoints
+
 
 def compute_metrics(a: Tensor, b: Tensor) -> dict:
     return {
@@ -131,7 +141,9 @@ def compute_metrics(a: Tensor, b: Tensor) -> dict:
     }
 
 
-def compare_parameters(base_model_path: str, target_model_path: str, output_json: str = None):
+def compare_parameters(
+    base_model_path: str, target_model_path: str, output_json: str = None
+):
     """
     Compare input embeddings, LM head, and layer weights between base model and checkpoints in target_model_path.
     """
@@ -150,7 +162,15 @@ def compare_parameters(base_model_path: str, target_model_path: str, output_json
     base_embedding = base_model.model.embed_tokens.weight.detach().cpu()
     base_lm_head = base_model.lm_head.weight.detach().cpu()
 
-    components = ["q_proj", "k_proj", "v_proj", "o_proj", "up_proj", "gate_proj", "down_proj"]
+    components = [
+        "q_proj",
+        "k_proj",
+        "v_proj",
+        "o_proj",
+        "up_proj",
+        "gate_proj",
+        "down_proj",
+    ]
 
     results = {
         "base_model": base_model_path,
@@ -168,18 +188,26 @@ def compare_parameters(base_model_path: str, target_model_path: str, output_json
         checkpoint_results = {
             "embedding": compute_metrics(base_embedding, target_embedding),
             "lm_head": compute_metrics(base_lm_head, target_lm_head),
-            "layers": {}
+            "layers": {},
         }
 
-        for layer_idx, (base_layer, target_layer) in enumerate(zip(base_layers, target_layers)):
+        for layer_idx, (base_layer, target_layer) in enumerate(
+            zip(base_layers, target_layers)
+        ):
             layer_results = {}
             for comp in components:
                 if hasattr(base_layer.self_attn, comp):  # Attention
-                    base_tensor = getattr(base_layer.self_attn, comp).weight.detach().cpu()
-                    target_tensor = getattr(target_layer.self_attn, comp).weight.detach().cpu()
+                    base_tensor = (
+                        getattr(base_layer.self_attn, comp).weight.detach().cpu()
+                    )
+                    target_tensor = (
+                        getattr(target_layer.self_attn, comp).weight.detach().cpu()
+                    )
                 elif hasattr(base_layer.mlp, comp):  # MLP
                     base_tensor = getattr(base_layer.mlp, comp).weight.detach().cpu()
-                    target_tensor = getattr(target_layer.mlp, comp).weight.detach().cpu()
+                    target_tensor = (
+                        getattr(target_layer.mlp, comp).weight.detach().cpu()
+                    )
                 else:
                     continue
 
@@ -202,7 +230,8 @@ def compare_parameters(base_model_path: str, target_model_path: str, output_json
             json.dump(results, f, indent=4)
         print(f"[INFO] Results saved to {output_json}")
 
-    return results 
+    return results
+
 
 def main():
     parser = argparse.ArgumentParser(description="Sentence retrieval task")
@@ -224,9 +253,12 @@ def main():
     args = parser.parse_args()
 
     os.makedirs(args.json_artifact_out, exist_ok=True)
-    output_json = generate_output_filename(args.base_model_path, args.target_model_path, args.json_artifact_out)
+    output_json = generate_output_filename(
+        args.base_model_path, args.target_model_path, args.json_artifact_out
+    )
 
     compare_parameters(args.base_model_path, args.target_model_path, output_json)
+
 
 if __name__ == "__main__":
     main()
